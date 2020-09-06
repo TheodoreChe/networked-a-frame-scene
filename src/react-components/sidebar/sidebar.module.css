@@ -1,0 +1,13 @@
+:root {
+    --bg-color: #24282b;
+}
+
+.wrap {
+    height: 100vh;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 300px;
+    padding: 40px;
+    border-right: 1px solid rgba(34,36,38,.15);
+}
