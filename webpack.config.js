@@ -2,6 +2,7 @@ const webpack = require("webpack");
 const dotEnv = require("dotenv");
 const path = require("path");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
+const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
 
 module.exports = (env, argv) => {
@@ -14,6 +15,9 @@ module.exports = (env, argv) => {
         },
         entry: {
             index: path.join(__dirname, "src", "index.js"),
+        },
+        output: {
+            filename: "js/[name]-[chunkhash].js",
         },
         resolve: {
             extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
@@ -31,7 +35,9 @@ module.exports = (env, argv) => {
                     test: /\.css$/,
                     include: /\.module\.css$/,
                     use: [
-                        { loader: 'style-loader' },
+                        {
+                            loader: MiniCssExtractPlugin.loader
+                        },
                         {
                             loader: 'css-loader',
                             options: {
@@ -48,8 +54,12 @@ module.exports = (env, argv) => {
                     test: /\.css$/,
                     exclude: /\.module\.css$/,
                     use: [
-                        'style-loader',
-                        'css-loader'
+                        {
+                            loader: MiniCssExtractPlugin.loader
+                        },
+                        {
+                            loader: 'css-loader'
+                        }
                     ],
                 },
                 {
@@ -58,6 +68,7 @@ module.exports = (env, argv) => {
                         loader: "url-loader",
                         options: {
                             limit: 10000,
+                            name: 'images/[name]-[contenthash].[ext]',
                         },
                     }
                 },
@@ -65,6 +76,9 @@ module.exports = (env, argv) => {
                     test: /\.(eot|ttf|svg|woff|woff2)$/,
                     use: {
                         loader: "file-loader",
+                        options: {
+                            name: 'assets/[name]-[contenthash].[ext]',
+                        },
                     }
                 },
                 {
@@ -76,6 +90,10 @@ module.exports = (env, argv) => {
             ]
         },
         plugins: [
+            new MiniCssExtractPlugin({
+                filename: "css/[name]-[contenthash].css",
+                disable: argv.mode !== "production"
+            }),
             new BundleAnalyzerPlugin({
                 analyzerMode: env && env.bundleAnalyzer ? "server" : "disabled"
             }),
@@ -89,6 +107,11 @@ module.exports = (env, argv) => {
                     NODE_ENV: argv.mode,
                 })
             })
-        ]
+        ],
+        optimization: {
+            splitChunks: {
+                chunks: 'all'
+            }
+        }
     };
 };
