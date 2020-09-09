@@ -10,11 +10,42 @@
   </head>
 
   <body>
-    <a-scene networked-scene>
+    <a-scene
+      networked-scene="
+      room: dev;
+      debug: true;
+      adapter: socketio;
+      serverURL: ws://localhost:4001;
+      "
+    >
       <a-assets>
+        <a-asset-item id="hardhat" src="../objects/hardhat/hardhat.obj"></a-asset-item>
+
+        <template id="avatar-template">
+          <a-entity class="avatar">
+            <a-entity
+              scale="0.002 0.002 0.002"
+              rotation="0 90 0"
+              obj-model="obj: #hardhat"
+              material="color: #f85001"
+            ></a-entity>
+            <a-entity geometry="primitive: sphere; radius: 0.22"></a-entity>
+          </a-entity>
+        </template>
+
         <a-asset-item id="window" src="../objects/window/window.obj"></a-asset-item>
         <a-asset-item id="window-mtl" src="../objects/window/window.mtl"></a-asset-item>
       </a-assets>
+
+      <a-entity
+        id="player"
+        networked="template:#avatar-template;attachTemplateToLocal:false;"
+        camera
+        position="0 1.6 0"
+        wasd-controls
+        look-controls
+      ></a-entity>
+
       <a-entity
         obj-model="obj: #window; mtl: #window-mtl"
         rotation="-90 -90 0"
@@ -27,6 +58,7 @@
         position="5 0.2 -4"
         scale="0.02 0.02 0.02"
       ></a-entity>
+
       <a-entity
         position="-2 3 -10"
         geometry="primitive: plane; width: 5; height: 5"
@@ -34,8 +66,10 @@
         bind__text="value: message"
         text="width: 4; color: #000"
       ></a-entity>
+
       <a-light type="ambient" color="#fff"></a-light>
-      <a-light type="point" intensity="2" position="2 4 4"></a-light>
+      <a-light type="point" intensity="1" position="2 10 4"></a-light>
+
       <a-box position="0 0.8 -4" rotation="0 -90 0" scale="3 0.1 2" color="#fd7f63"></a-box>
       <a-plane position="0 0 -5" rotation="-90 0 0" width="10" height="10" color="#0561e2"></a-plane>
       <a-sky color="#feeae8"></a-sky>
