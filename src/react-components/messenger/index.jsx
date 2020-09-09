@@ -9,7 +9,7 @@ export const Messenger = () => (
                 <input />
             </Form.Field>
             <Form.TextArea />
-            <Button content='Add Reply' primary />
+            <Button content='Send message' primary />
         </Form>
 
         <Divider />

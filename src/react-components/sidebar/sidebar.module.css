@@ -1,5 +1,7 @@
 :root {
-    --bg-color: #24282b;
+    --white: rgba(255,255,255,1);
+    --grey: rgba(34,36,38,.15);
+    --dark-blue: rgba(22, 32, 44, 1);
 }
 
 .wrap {
@@ -9,5 +11,6 @@
     top: 0;
     width: 300px;
     padding: 40px;
-    border-right: 1px solid rgba(34,36,38,.15);
+    border-right: 1px solid var(--grey);
+    background-color: var(--white);
 }

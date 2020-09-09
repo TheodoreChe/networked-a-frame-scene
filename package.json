@@ -19,7 +19,10 @@
   },
   "homepage": "https://github.com/TheodoreChe/networked-a-frame-scene#readme",
   "dependencies": {
+    "aframe": "^1.0.4",
+    "aframe-state-component": "^7.1.0",
     "babel-plugin-react-css-modules": "^5.2.6",
+    "networked-aframe": "^0.7.1",
     "react": "^16.13.1",
     "react-dom": "^16.13.1",
     "semantic-ui-css": "^2.4.1",
@@ -43,6 +46,7 @@
     "prettier": "^2.1.1",
     "rimraf": "^3.0.2",
     "style-loader": "^1.2.1",
+    "terser-webpack-plugin": "^4.1.0",
     "url-loader": "^4.1.0",
     "webpack": "^4.44.1",
     "webpack-bundle-analyzer": "^3.8.0",

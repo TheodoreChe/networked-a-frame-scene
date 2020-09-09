@@ -1,117 +1,155 @@
-const webpack = require("webpack");
-const dotEnv = require("dotenv");
-const path = require("path");
-const HtmlWebPackPlugin = require("html-webpack-plugin");
-const MiniCssExtractPlugin = require("mini-css-extract-plugin");
-const BundleAnalyzerPlugin = require("webpack-bundle-analyzer").BundleAnalyzerPlugin;
+const webpack = require('webpack');
+const dotEnv = require('dotenv');
+const path = require('path');
+const TerserPlugin = require('terser-webpack-plugin');
+const HtmlWebPackPlugin = require('html-webpack-plugin');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 
 module.exports = (env, argv) => {
-    dotEnv.config({ path: ".env" });
+  dotEnv.config({ path: '.env' });
 
-    return {
-        node: {
-            Buffer: false,
-            fs: "empty"
+  const getCommonStyleLoaders = () =>
+    [
+      argv.mode !== 'production' && 'style-loader',
+      argv.mode === 'production' && {
+        loader: MiniCssExtractPlugin.loader,
+      },
+    ].filter(Boolean);
+
+  return {
+    entry: {
+      index: path.join(__dirname, 'src', 'index.js'),
+    },
+    output: {
+      filename: 'js/[name]-[chunkhash].js',
+      publicPath: process.env.BASE_ASSETS_PATH || ""
+    },
+    devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
+    resolve: {
+      extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
+    },
+    module: {
+      rules: [
+        {
+          test: /\.(js|mjs|jsx|ts|tsx)$/,
+          exclude: [path.resolve(__dirname, 'node_modules')],
+          use: {
+            loader: 'babel-loader',
+          },
         },
-        entry: {
-            index: path.join(__dirname, "src", "index.js"),
+        {
+          test: /\.css$/,
+          include: /\.module\.css$/,
+          use: [
+            ...getCommonStyleLoaders(),
+            {
+              loader: 'css-loader',
+              options: {
+                importLoaders: 1,
+                modules: {
+                  localIdentName: '[path]___[name]__[local]___[hash:base64:5]',
+                },
+              },
+            },
+            { loader: 'postcss-loader' },
+          ],
         },
-        output: {
-            filename: "js/[name]-[chunkhash].js",
+        {
+          test: /\.css$/,
+          exclude: /\.module\.css$/,
+          use: [
+            ...getCommonStyleLoaders(),
+            {
+              loader: 'css-loader',
+            },
+          ],
+          sideEffects: true,
         },
-        resolve: {
-            extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
+        {
+          test: [/\.bmp$/, /\.gif$/, /\.jpe?g$/, /\.png$/],
+          loader: 'url-loader',
+          options: {
+            limit: 10000,
+            name: 'assets/[name].[hash:8].[ext]',
+          },
         },
-        module: {
-            rules: [
-                {
-                    test: /\.(js|jsx|ts|tsx)$/,
-                    exclude: [path.resolve(__dirname, "node_modules")],
-                    use: {
-                        loader: "babel-loader"
-                    }
-                },
-                {
-                    test: /\.css$/,
-                    include: /\.module\.css$/,
-                    use: [
-                        {
-                            loader: MiniCssExtractPlugin.loader
-                        },
-                        {
-                            loader: 'css-loader',
-                            options: {
-                                importLoaders: 1,
-                                modules: {
-                                    localIdentName: '[path]___[name]__[local]___[hash:base64:5]',
-                                },
-                            },
-                        },
-                        { loader: 'postcss-loader' }
-                    ],
-                },
-                {
-                    test: /\.css$/,
-                    exclude: /\.module\.css$/,
-                    use: [
-                        {
-                            loader: MiniCssExtractPlugin.loader
-                        },
-                        {
-                            loader: 'css-loader'
-                        }
-                    ],
-                },
-                {
-                    test: /\.(bmp|gif|jpe?g|png)$/,
-                    use: {
-                        loader: "url-loader",
-                        options: {
-                            limit: 10000,
-                            name: 'images/[name]-[contenthash].[ext]',
-                        },
-                    }
-                },
-                {
-                    test: /\.(eot|ttf|svg|woff|woff2)$/,
-                    use: {
-                        loader: "file-loader",
-                        options: {
-                            name: 'assets/[name]-[contenthash].[ext]',
-                        },
-                    }
-                },
-                {
-                    test: /\.html$/,
-                    use: {
-                        loader: "html-loader",
-                    }
-                }
-            ]
+        {
+          test: /\.(obj|mtl|bmp|gif|jpe?g|png|eot|ttf|svg|otf|woff|woff2)$/,
+          use: {
+            loader: 'file-loader',
+            options: {
+              name: 'assets/[name].[hash:8].[ext]',
+            },
+          },
         },
-        plugins: [
-            new MiniCssExtractPlugin({
-                filename: "css/[name]-[contenthash].css",
-                disable: argv.mode !== "production"
-            }),
-            new BundleAnalyzerPlugin({
-                analyzerMode: env && env.bundleAnalyzer ? "server" : "disabled"
-            }),
-            new HtmlWebPackPlugin({
-                filename: "./index.html",
-                template: path.join(__dirname, "src", "templates", "index.html"),
-                chunks: ["index"],
-            }),
-            new webpack.DefinePlugin({
-                "process.env": JSON.stringify({
-                    NODE_ENV: argv.mode,
-                })
-            })
-        ],
-        optimization: {
-            splitChunks: {
-                chunks: 'all'
+        {
+          test: /\.html$/,
+          use: {
+            loader: 'html-loader',
+            options: {
+              attributes: {
+                list: [
+                  {
+                    attribute: 'src',
+                    type: 'src',
+                  }
+                ]
+              }
             }
-        }
-    };
+          },
+        },
+      ],
+    },
+
+    plugins: [
+      new MiniCssExtractPlugin({
+        filename: 'css/[name].css?[contenthash]',
+        disable: argv.mode !== 'production',
+      }),
+      new BundleAnalyzerPlugin({
+        analyzerMode: env && env.bundleAnalyzer ? 'server' : 'disabled',
+      }),
+      new HtmlWebPackPlugin({
+        inject: 'head',
+        filename: './index.html',
+        template: path.join(__dirname, 'src', 'templates', 'index.html'),
+        chunks: ['index', 'scene'],
+      }),
+      new webpack.DefinePlugin({
+        'process.env': JSON.stringify({
+          NODE_ENV: argv.mode,
+        }),
+      }),
+    ],
+
+    optimization: {
+      minimize: argv.mode === 'production',
+      minimizer: [
+        new TerserPlugin({
+          terserOptions: {
+            output: {
+              comments: false,
+            },
+          },
+        }),
+      ],
+      splitChunks: {
+        chunks: 'all',
+        name: false,
+      },
+    },
+
+    node: {
+      module: 'empty',
+      dgram: 'empty',
+      dns: 'mock',
+      fs: 'empty',
+      http2: 'empty',
+      net: 'empty',
+      tls: 'empty',
+      child_process: 'empty',
+      Buffer: false,
+    },
+  };
 };
