@@ -10,12 +10,14 @@
   </head>
 
   <body>
+  <%= process.env.SERVER_URL %>
     <a-scene
+      shadow="type: pcfsoft;autoUpdate: false"
       networked-scene="
-      room: dev;
-      debug: true;
-      adapter: socketio;
-      serverURL: ws://localhost:4001;
+          room: dev;
+          adapter: socketio;
+          debug: <%= debug %>;
+          serverURL: <%= serverUrl %>:<%= serverPort %>;
       "
     >
       <a-assets>

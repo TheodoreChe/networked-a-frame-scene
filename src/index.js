@@ -8,8 +8,11 @@ import { Sidebar } from './react-components/sidebar';
 import { Messenger } from './react-components/messenger';
 import 'semantic-ui-css/semantic.min.css';
 
+const PORT = process.env.SERVER_PORT || 4001;
+const SERVER_URL = process.env.SERVER_URL || 'ws://localhost';
+
 window.io = socketIOClient;
-window.io('ws://localhost:4001');
+window.io(`${SERVER_URL}:${PORT}`);
 
 function mountUI() {
     ReactDOM.render(

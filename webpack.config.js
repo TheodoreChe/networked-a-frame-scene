@@ -1,6 +1,7 @@
 const webpack = require('webpack');
 const dotEnv = require('dotenv');
 const path = require('path');
+const ejs = require('ejs');
 const TerserPlugin = require('terser-webpack-plugin');
 const HtmlWebPackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
@@ -22,10 +23,10 @@ module.exports = (env, argv) => {
       index: path.join(__dirname, 'src', 'index.js'),
     },
     output: {
-      filename: 'js/[name]-[chunkhash].js',
-      publicPath: process.env.BASE_ASSETS_PATH || ""
+      filename: 'js/[name]-[hash].js',
+      publicPath: process.env.BASE_ASSETS_PATH || '',
     },
-    devtool: argv.mode === "production" ? "source-map" : "inline-source-map",
+    devtool: argv.mode === 'production' ? 'source-map' : 'inline-source-map',
     resolve: {
       extensions: ['.js', '.jsx', '.json', '.ts', '.tsx'],
     },
@@ -85,19 +86,38 @@ module.exports = (env, argv) => {
         },
         {
           test: /\.html$/,
-          use: {
-            loader: 'html-loader',
-            options: {
-              attributes: {
-                list: [
-                  {
-                    attribute: 'src',
-                    type: 'src',
+          use: [
+            {
+              loader: 'html-loader',
+              options: {
+                preprocessor: (content, loaderContext) => {
+                  let result;
+
+                  try {
+                    result = ejs.compile(content)({
+                      debug: argv.mode !== 'production',
+                      serverUrl: process.env.SERVER_URL,
+                      serverPort: process.env.SERVER_PORT,
+                    });
+                  } catch (error) {
+                    loaderContext.emitError(error);
+
+                    return content;
                   }
-                ]
-              }
-            }
-          },
+
+                  return result;
+                },
+                attributes: {
+                  list: [
+                    {
+                      attribute: 'src',
+                      type: 'src',
+                    },
+                  ],
+                },
+              },
+            },
+          ],
         },
       ],
     },
@@ -122,6 +142,13 @@ module.exports = (env, argv) => {
         }),
       }),
     ],
+
+    devServer: {
+      historyApiFallback: true,
+      hot: true,
+      inline: true,
+      publicPath: '/',
+    },
 
     optimization: {
       minimize: argv.mode === 'production',
